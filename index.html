@@ -471,8 +471,9 @@
   </footer>
 
   <script>
-    // Session 2 : coller ici l'URL du webhook N8N (nœud « Webhook », méthode POST).
-    const WEBHOOK_URL = "";
+    // URL du webhook N8N (nœud « Formulaire Landing », méthode POST).
+    // N8N tourne en local pour l'instant : remplacer par l'URL publique (tunnel ou N8N en ligne) le moment venu.
+    const WEBHOOK_URL = "http://localhost:5678/webhook/landing-walletly";
 
     const form = document.getElementById("contact-form");
     const statusEl = document.getElementById("status");
