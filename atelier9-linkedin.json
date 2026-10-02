@@ -1,0 +1,203 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "9a1b2c3d-0001-4e5f-8a9b-000000000001",
+      "name": "Lancer",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9a1b2c3d-0101-4e5f-8a9b-000000000001",
+              "name": "texte",
+              "value": "Combien de cartes de fidélité en carton traînent au fond de votre portefeuille ? 🗂️\n\nMoi, j’en avais une dizaine. À moitié tamponnées, jamais utilisées jusqu’au bout.\n\nEt côté commerçants, c’est pire : impossible de savoir qui revient, ni de garder le contact avec ses clients fidèles.\n\nC’est pour ça qu’avec mon associé, on a créé Walletly.\n\n👉 Le commerçant crée sa carte de fidélité en quelques minutes\n👉 Le client l’ajoute dans Apple Wallet ou Google Wallet en scannant un QR code, sans application à télécharger\n👉 Les points se cumulent à chaque passage, et le commerçant peut envoyer des notifications à ses clients\n\nNotre objectif : donner aux commerces indépendants les mêmes outils de fidélisation que les grandes enseignes.\n\nVous êtes commerçant, ou vous en connaissez un (boulangerie, café, coiffeur, restaurant…) ? Écrivez-moi en message privé, ou partagez-lui ce post 🙏\n\n#entrepreneuriat #startup #commerce #fidélisation",
+              "type": "string"
+            },
+            {
+              "id": "9a1b2c3d-0102-4e5f-8a9b-000000000002",
+              "name": "image_url",
+              "value": "https://walletlyceo.github.io/walletly-landing-ecole/images/post-linkedin-2.png",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9a1b2c3d-0002-4e5f-8a9b-000000000002",
+      "name": "Texte du post",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "fromEmail": "N8N <VOTRE_ADRESSE@gmail.com>",
+        "toEmail": "VOTRE_ADRESSE@gmail.com",
+        "subject": "Valider le post LinkedIn ?",
+        "message": "=Voici le post qui va être publié sur ton profil LinkedIn :<br><br><img src=\"{{ $json.image_url }}\" width=\"420\" style=\"max-width:100%;border-radius:10px\" alt=\"Visuel du post\"><br><br><blockquote>{{ $json.texte.replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\").replace(/\\n/g, \"<br>\") }}</blockquote>",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Publier",
+            "disapproveLabel": "Refuser"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "9a1b2c3d-0003-4e5f-8a9b-000000000003",
+      "name": "Validation humaine",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        0
+      ],
+      "webhookId": "5c2e8f41-7a3b-4d9e-b1c6-2f0a9e8d7c03"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "9a1b2c3d-0201-4e5f-8a9b-000000000001",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9a1b2c3d-0004-4e5f-8a9b-000000000004",
+      "name": "Approuvé ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $(\"Texte du post\").item.json.image_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "9a1b2c3d-0006-4e5f-8a9b-000000000006",
+      "name": "Télécharger l’image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "post",
+        "operation": "create",
+        "postAs": "person",
+        "person": "",
+        "text": "={{ $(\"Texte du post\").item.json.texte }}",
+        "shareMediaCategory": "IMAGE",
+        "binaryPropertyName": "data",
+        "additionalFields": {}
+      },
+      "id": "9a1b2c3d-0005-4e5f-8a9b-000000000005",
+      "name": "Publier sur LinkedIn",
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        -100
+      ]
+    }
+  ],
+  "connections": {
+    "Lancer": {
+      "main": [
+        [
+          {
+            "node": "Texte du post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Texte du post": {
+      "main": [
+        [
+          {
+            "node": "Validation humaine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation humaine": {
+      "main": [
+        [
+          {
+            "node": "Approuvé ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approuvé ?": {
+      "main": [
+        [
+          {
+            "node": "Télécharger l’image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Télécharger l’image": {
+      "main": [
+        [
+          {
+            "node": "Publier sur LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
