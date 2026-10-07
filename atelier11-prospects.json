@@ -8,55 +8,113 @@
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {},
-      "id": "b0000000-0000-4000-8000-000000000001",
-      "name": "Lancer",
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ]
-    },
-    {
       "parameters": {
-        "assignments": {
-          "assignments": [
+        "formTitle": "Prospection Walletly",
+        "formDescription": "Choisis une ou plusieurs zones et les types de commerces à chercher. Les résultats sont ajoutés au Google Sheet « Prospects Walletly » (Drive Walletly › Prospection), classés par potentiel.",
+        "formFields": {
+          "values": [
             {
-              "id": "b0000000-0000-4000-8000-000000000101",
-              "name": "zones",
-              "value": "Paris 11e",
-              "type": "string"
+              "fieldLabel": "Zones",
+              "fieldType": "text",
+              "placeholder": "Paris 11e; Paris 10e; Montreuil",
+              "requiredField": true
             },
             {
-              "id": "b0000000-0000-4000-8000-000000000102",
-              "name": "categories",
-              "value": "boulangerie, café, restaurant, coiffeur, fleuriste, caviste, boucherie, institut de beauté",
-              "type": "string"
+              "fieldLabel": "Types de commerce",
+              "fieldType": "checkbox",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Tous les commerces"
+                  },
+                  {
+                    "option": "Boulangerie"
+                  },
+                  {
+                    "option": "Pâtisserie"
+                  },
+                  {
+                    "option": "Café"
+                  },
+                  {
+                    "option": "Salon de thé"
+                  },
+                  {
+                    "option": "Restaurant"
+                  },
+                  {
+                    "option": "Bar"
+                  },
+                  {
+                    "option": "Coiffeur"
+                  },
+                  {
+                    "option": "Barbier"
+                  },
+                  {
+                    "option": "Institut de beauté"
+                  },
+                  {
+                    "option": "Onglerie"
+                  },
+                  {
+                    "option": "Fleuriste"
+                  },
+                  {
+                    "option": "Caviste"
+                  },
+                  {
+                    "option": "Boucherie"
+                  },
+                  {
+                    "option": "Fromagerie"
+                  },
+                  {
+                    "option": "Épicerie fine"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Autres types (facultatif)",
+              "fieldType": "text",
+              "placeholder": "ex. librairie, opticien, pressing"
             }
           ]
         },
-        "options": {}
+        "responseMode": "lastNode",
+        "options": {
+          "path": "prospection-walletly",
+          "buttonLabel": "Lancer la recherche",
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "redirect",
+              "redirectUrl": "https://docs.google.com/spreadsheets/d/16dp2rYYPfoS_dNODJ8b-DyOrYpPiezMGgyVpPx37ECQ/edit"
+            }
+          }
+        }
       },
-      "id": "b0000000-0000-4000-8000-000000000002",
-      "name": "Paramètres",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "id": "b0000000-0000-4000-8000-000000000010",
+      "name": "Formulaire de recherche",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
       "position": [
-        224,
+        0,
         0
-      ]
+      ],
+      "webhookId": "4f6c2b1e-9a7d-4c3e-8b5a-1d2e3f4a5b6c"
     },
     {
       "parameters": {
-        "jsCode": "// Une recherche Google par zone et par type de commerce\n// zones : séparées par des points-virgules (ex. \"Paris 11e; Paris 10e; Montreuil\")\n// categories : séparées par des virgules\nconst p = $input.first().json;\nconst zones = String(p.zones || p.zone || '').split(String.fromCharCode(10)).join(';').split(';').map(z => z.trim()).filter(Boolean);\nconst categories = String(p.categories).split(',').map(c => c.trim()).filter(Boolean);\nconst recherches = [];\nfor (const zone of zones) {\n  for (const categorie of categories) {\n    recherches.push({ json: { categorie, zone, textQuery: categorie + ' ' + zone } });\n  }\n}\nreturn recherches;"
+        "jsCode": "// Une recherche Google par zone et par type de commerce, d'après le formulaire\nconst f = $input.first().json;\nconst TOUS = [\"Boulangerie\",\"Pâtisserie\",\"Café\",\"Salon de thé\",\"Restaurant\",\"Bar\",\"Coiffeur\",\"Barbier\",\"Institut de beauté\",\"Onglerie\",\"Fleuriste\",\"Caviste\",\"Boucherie\",\"Fromagerie\",\"Épicerie fine\"];\nconst nettoyer = s => s.map(x => String(x).trim()).filter(Boolean);\nconst zones = nettoyer(String(f['Zones'] || '').split(String.fromCharCode(10)).join(';').split(';'));\nlet types = f['Types de commerce'] || [];\nif (!Array.isArray(types)) types = [types];\nif (types.includes(\"Tous les commerces\")) types = TOUS;\nconst autres = nettoyer(String(f['Autres types (facultatif)'] || '').split(','));\nconst categories = [...new Set([...types.filter(t => t !== \"Tous les commerces\"), ...autres].map(t => t.toLowerCase()))];\nif (!zones.length) throw new Error('Indique au moins une zone.');\nif (!categories.length) throw new Error('Choisis au moins un type de commerce.');\nconst nb = zones.length * categories.length;\nif (nb > 150) throw new Error(nb + ' recherches demandées : maximum 150 par lancement (quota gratuit Google de 1000/mois). Réduis les zones ou les types.');\nconst recherches = [];\nfor (const zone of zones) {\n  for (const categorie of categories) {\n    recherches.push({ json: { categorie, zone, textQuery: categorie + ' ' + zone } });\n  }\n}\nreturn recherches;"
       },
       "id": "b0000000-0000-4000-8000-000000000003",
       "name": "Préparer les recherches",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
+        240,
         0
       ]
     },
@@ -85,7 +143,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        672,
+        480,
         0
       ],
       "credentials": {
@@ -104,7 +162,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        880,
+        720,
         0
       ]
     },
@@ -114,14 +172,13 @@
         "documentId": {
           "__rl": true,
           "mode": "url",
-          "value": "https://docs.google.com/spreadsheets/d/1XbG7bb7g_CHIAp3sum8OM-mjy0dcSq62SitYp2HdGxI/edit"
+          "value": "https://docs.google.com/spreadsheets/d/16dp2rYYPfoS_dNODJ8b-DyOrYpPiezMGgyVpPx37ECQ/edit"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1122732538,
           "mode": "list",
-          "cachedResultName": "Untitled",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XbG7bb7g_CHIAp3sum8OM-mjy0dcSq62SitYp2HdGxI/edit#gid=1122732538"
+          "value": "gid=0",
+          "cachedResultName": "Feuille 1"
         },
         "columns": {
           "mappingMode": "autoMapInputData",
@@ -291,7 +348,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1104,
+        960,
         0
       ],
       "credentials": {
@@ -303,28 +360,6 @@
     }
   ],
   "connections": {
-    "Lancer": {
-      "main": [
-        [
-          {
-            "node": "Paramètres",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Paramètres": {
-      "main": [
-        [
-          {
-            "node": "Préparer les recherches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Préparer les recherches": {
       "main": [
         [
@@ -352,6 +387,17 @@
         [
           {
             "node": "Google Sheet Prospects",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formulaire de recherche": {
+      "main": [
+        [
+          {
+            "node": "Préparer les recherches",
             "type": "main",
             "index": 0
           }
