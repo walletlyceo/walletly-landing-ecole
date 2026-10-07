@@ -357,6 +357,33 @@
           "name": "Google Sheets account"
         }
       }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/16dp2rYYPfoS_dNODJ8b-DyOrYpPiezMGgyVpPx37ECQ:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"requests\": [\n    {\n      \"sortRange\": {\n        \"range\": {\n          \"sheetId\": 0,\n          \"startRowIndex\": 1,\n          \"startColumnIndex\": 0,\n          \"endColumnIndex\": 15\n        },\n        \"sortSpecs\": [\n          {\n            \"dimensionIndex\": 11,\n            \"sortOrder\": \"ASCENDING\"\n          },\n          {\n            \"dimensionIndex\": 3,\n            \"sortOrder\": \"ASCENDING\"\n          },\n          {\n            \"dimensionIndex\": 6,\n            \"sortOrder\": \"ASCENDING\"\n          }\n        ]\n      }\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "b0000000-0000-4000-8000-000000000011",
+      "name": "Trier le Sheet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        0
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GlnnZCfT9VU39jqA",
+          "name": "Google Sheets account"
+        }
+      }
     }
   ],
   "connections": {
@@ -398,6 +425,17 @@
         [
           {
             "node": "Préparer les recherches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheet Prospects": {
+      "main": [
+        [
+          {
+            "node": "Trier le Sheet",
             "type": "main",
             "index": 0
           }
